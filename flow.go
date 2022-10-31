@@ -24,7 +24,7 @@ type Flow[V any] interface {
 	Link(context.Context) <-chan error
 
 	// Run should construct the flow of values from emitter to collector
-	// within the provided context, and listen to their error channels in
+	// within the provided context and listen to their error channels in
 	// blocking way. If an error appears in at least one channel, it should
 	// return it immediately. If the flow is over without any error, it
 	// should return nil.
