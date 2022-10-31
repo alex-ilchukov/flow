@@ -78,11 +78,32 @@ func (c *c) process(ctx context.Context, in <-chan int, err chan error) {
 	}
 }
 
-func TestRunWithNoError(t *testing.T) {
+func TestFEmitter(t *testing.T) {
+	e := &e{amount: 5}
+	c := &c{limit: 10}
+	f := flow.New[int](e, c)
+
+	if f.Emitter() == nil {
+		t.Errorf("Emitter is nil")
+	}
+}
+
+func TestFCollector(t *testing.T) {
+	e := &e{amount: 5}
+	c := &c{limit: 10}
+	f := flow.New[int](e, c)
+
+	if f.Collector() == nil {
+		t.Errorf("Collector is nil")
+	}
+}
+
+func TestFRunWithNoError(t *testing.T) {
 	ctx := context.Background()
 	e := &e{amount: 5}
 	c := &c{limit: 10}
-	err := flow.Run[int](ctx, e, c)
+	f := flow.New[int](e, c)
+	err := f.Run(ctx)
 
 	switch {
 	case err != nil:
@@ -93,52 +114,56 @@ func TestRunWithNoError(t *testing.T) {
 	}
 }
 
-func TestRunWithEmitterError(t *testing.T) {
+func TestFRunWithEmitterError(t *testing.T) {
 	ctx := context.Background()
 	e := &e{amount: 5, err: errEmitterProblem}
 	c := &c{limit: 10}
-	err := flow.Run[int](ctx, e, c)
+	f := flow.New[int](e, c)
+	err := f.Run(ctx)
 
 	if err != errEmitterProblem {
 		t.Errorf("Error %v is not the %v", err, errEmitterProblem)
 	}
 }
 
-func TestRunWithCollectorError(t *testing.T) {
+func TestFRunWithCollectorError(t *testing.T) {
 	ctx := context.Background()
 	e := &e{amount: 5}
 	c := &c{limit: 4}
-	err := flow.Run[int](ctx, e, c)
+	f := flow.New[int](e, c)
+	err := f.Run(ctx)
 
 	if err != errOverflow {
 		t.Errorf("Error %v is not the %v", err, errOverflow)
 	}
 }
 
-func TestRunWhenCanceled(t *testing.T) {
+func TestFRunWhenCanceled(t *testing.T) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
 	e := &e{amount: 5, sleep: time.Second}
 	c := &c{limit: 10}
+	f := flow.New[int](e, c)
 
 	go cancel()
 
-	err := flow.Run[int](ctx, e, c)
+	err := f.Run(ctx)
 	if err != nil {
 		t.Errorf("Error %v has appeared", err)
 	}
 }
 
-func TestRunWhenDeadlineExceeded(t *testing.T) {
+func TestFRunWhenDeadlineExceeded(t *testing.T) {
 	ctx := context.Background()
 	deadline := time.Now().Add(time.Microsecond)
 	ctx, _ = context.WithDeadline(ctx, deadline)
 
 	e := &e{amount: 5, sleep: time.Second}
 	c := &c{limit: 10}
+	f := flow.New[int](e, c)
 
-	err := flow.Run[int](ctx, e, c)
+	err := f.Run(ctx)
 	if err != nil {
 		t.Errorf("Error %v has appeared", err)
 	}
