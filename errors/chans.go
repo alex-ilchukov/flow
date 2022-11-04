@@ -7,3 +7,10 @@ type No [0]chan<- error
 // One is type of one-element arrays of error-writing channels used by regular
 // cases.
 type One [1]chan<- error
+
+// Chans is set of common types of error-writing channels collections. The
+// zero-elements array is for those cases, which don't need error handling at
+// all, and one-element array is for regular cases.
+type Chans interface {
+	No | One
+}
