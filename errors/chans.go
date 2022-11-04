@@ -14,3 +14,27 @@ type One [1]chan<- error
 type Chans interface {
 	No | One
 }
+
+// Make creates as many error channels as there are elements in array of the
+// provided type E from [Chans] set. It returns the channels as error-writing
+// channels in resulting array werrs of type E and _the same_ channels as
+// error-reading channels in resulting slice rerrs. In special case of type E
+// being a type of zero-elements array, it returns nil in rerrs.
+func Make[E Chans]() (werrs E, rerrs []<-chan error) {
+	l := len(werrs)
+	if l == 0 {
+		return
+	}
+
+	rerrs = make([]<-chan error, l, l)
+	for i := 1; i <= l; i++ {
+		c := make(chan error)
+		// The trick is to cajole Go compiler. If the code is rewritten
+		// as werrs[i] = c, it whines something regarding violation of
+		// boundaries.
+		werrs[l-i] = c
+		rerrs[l-i] = c
+	}
+
+	return
+}
