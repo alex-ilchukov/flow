@@ -38,3 +38,17 @@ func TestMakeOneError(t *testing.T) {
 		t.Errorf("Got no error")
 	}
 }
+
+func TestCloseNoErrors(t *testing.T) {
+	var errs flowerrors.No
+	flowerrors.Close(errs)
+}
+
+func TestCloseOneError(t *testing.T) {
+	werrs, rerrs := flowerrors.Make[flowerrors.One]()
+	flowerrors.Close(werrs)
+	_, open := <-rerrs[0]
+	if open {
+		t.Errorf("Channel is still open after closing")
+	}
+}

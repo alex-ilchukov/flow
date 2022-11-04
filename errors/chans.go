@@ -38,3 +38,12 @@ func Make[E Chans]() (werrs E, rerrs []<-chan error) {
 
 	return
 }
+
+// Closes takes array of error-writing channels of the provided type E from set
+// [Chans] and closes its every element if there is any. It is supposed to work
+// in pair with [Make].
+func Close[E Chans](errs E) {
+	for i, l := 1, len(errs); i <= l; i++ {
+		close(errs[l-i])
+	}
+}
