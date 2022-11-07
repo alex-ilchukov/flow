@@ -53,12 +53,8 @@ func TestReceiveWhenClosed(t *testing.T) {
 
 	_, status := values.Receive(ctx, ch)
 
-	if status != values.ErrClosedChannel {
-		t.Errorf(
-			testReceiveWhenClosedError,
-			status,
-			values.ErrClosedChannel,
-		)
+	if status != values.Over {
+		t.Errorf(testReceiveWhenClosedError, status, values.Over)
 	}
 }
 
