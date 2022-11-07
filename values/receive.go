@@ -1,13 +1,6 @@
 package values
 
-import (
-	"context"
-	"errors"
-)
-
-// Over is used to indicate that channel is closed and reading from it is
-// impossible.
-var Over = errors.New("over")
+import "context"
 
 // Receive takes channel ch and tries to pop a value from the channel within
 // the provided context ctx. It return the following values.
