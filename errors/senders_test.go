@@ -38,19 +38,3 @@ func TestMakeOneError(t *testing.T) {
 		t.Errorf("Got no error")
 	}
 }
-
-func TestClose(t *testing.T) {
-	rerrs := make([]<-chan error, 1)
-	werrs := make([]chan<- error, 1)
-	for i := 0; i < len(werrs); i++ {
-		ch := make(chan error)
-		rerrs[i] := ch
-		werrs[i] := ch
-	}
-
-	flowerrors.Close(werrs)
-	_, open := <-rerrs[0]
-	if open {
-		t.Errorf("Channel is still open after closing")
-	}
-}
