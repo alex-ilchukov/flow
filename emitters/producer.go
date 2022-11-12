@@ -8,7 +8,7 @@ import (
 
 // Producer is type of producers of values used by [flow.Emitter] interface
 // implementations.
-type Producer[V any, E errors.Chans] interface {
+type Producer[V any, E errors.Senders] interface {
 	// Produce should produce values of V type and write them into the
 	// provided channel with respect to the provided context. Depending on
 	// provided collection of error-writing channels of type from set E, it

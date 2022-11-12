@@ -7,13 +7,13 @@ import (
 	"github.com/alex-ilchukov/flow/errors"
 )
 
-type i[V any, E errors.Chans] struct {
+type i[V any, E errors.Senders] struct {
 	c Consumer[V, E]
 }
 
 // New creates an implementation of [flow.Collector] interface with help of the
 // provided consumer c and returns it.
-func New[V any, E errors.Chans](c Consumer[V, E]) *i[V, E] {
+func New[V any, E errors.Senders](c Consumer[V, E]) *i[V, E] {
 	return &i[V, E]{c: c}
 }
 

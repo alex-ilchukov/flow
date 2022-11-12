@@ -8,7 +8,7 @@ import (
 
 // Consumer is type of consumers of values used by [flow.Collector] interface
 // implementations.
-type Consumer[V any, E errors.Chans] interface {
+type Consumer[V any, E errors.Senders] interface {
 	// Consume should read values of type V from the provided channel with
 	// respect to the provided context and consume them. Depending on
 	// provided collection of error-writing channels of type from set E, it

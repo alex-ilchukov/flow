@@ -11,7 +11,7 @@ import (
 	flowerrors "github.com/alex-ilchukov/flow/errors"
 )
 
-type p[E flowerrors.Chans] struct {
+type p[E flowerrors.Senders] struct {
 	amount int
 	err    error
 }

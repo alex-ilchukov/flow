@@ -12,7 +12,7 @@ import (
 	"github.com/alex-ilchukov/flow/values"
 )
 
-type c[E flowerrors.Chans] struct {
+type c[E flowerrors.Senders] struct {
 	ints []int
 }
 

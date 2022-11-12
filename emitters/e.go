@@ -7,13 +7,13 @@ import (
 	"github.com/alex-ilchukov/flow/errors"
 )
 
-type e[V any, E errors.Chans] struct {
+type e[V any, E errors.Senders] struct {
 	p Producer[V, E]
 }
 
 // New creates an implementation of [flow.Emitter] interface with help of the
 // provided producer p and returns it.
-func New[V any, E errors.Chans](p Producer[V, E]) *e[V, E] {
+func New[V any, E errors.Senders](p Producer[V, E]) *e[V, E] {
 	return &e[V, E]{p: p}
 }
 
