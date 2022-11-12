@@ -39,13 +39,15 @@ func TestMakeOneError(t *testing.T) {
 	}
 }
 
-func TestCloseNoErrors(t *testing.T) {
-	var errs flowerrors.No
-	flowerrors.Close(errs)
-}
+func TestClose(t *testing.T) {
+	rerrs := make([]<-chan error, 1)
+	werrs := make([]chan<- error, 1)
+	for i := 0; i < len(werrs); i++ {
+		ch := make(chan error)
+		rerrs[i] := ch
+		werrs[i] := ch
+	}
 
-func TestCloseOneError(t *testing.T) {
-	werrs, rerrs := flowerrors.Make[flowerrors.One]()
 	flowerrors.Close(werrs)
 	_, open := <-rerrs[0]
 	if open {

@@ -55,11 +55,9 @@ func Make[E Senders]() (werrs E, rerrs []<-chan error) {
 	return
 }
 
-// Closes takes array of error-writing channels of the provided type E from set
-// [Senders] and closes its every element if there is any. It is supposed to work
-// in pair with [Make].
-func Close[E Senders](errs E) {
-	for i, l := 1, len(errs); i <= l; i++ {
-		close(errs[l-i])
+// Close takes slice of error-writing channels and closes its every element.
+func Close(werrs []chan<- error) {
+	for _, ch := range werrs {
+		close(ch)
 	}
 }
