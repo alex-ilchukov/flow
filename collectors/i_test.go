@@ -18,15 +18,15 @@ type c[E flowerrors.Senders] struct {
 
 var errOverflow = errors.New("overflow")
 
-func (c *c[E]) Consume(ctx context.Context, in <-chan int, errs E) {
+func (c *c[E]) Consume(ctx context.Context, r values.Receiver[int], errs E) {
 	for {
-		i, status := values.Receive(ctx, in)
+		i, status := r.Receive()
 		if status != nil {
 			return
 		}
 
 		if len(errs) > 0 && len(c.ints) >= cap(c.ints) {
-			values.Send(ctx, errs[len(errs)-1], errOverflow)
+			errs[len(errs)-1].Send(errOverflow)
 			return
 		}
 
