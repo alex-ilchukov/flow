@@ -11,8 +11,8 @@ func TestClose(t *testing.T) {
 	werrs := make([]chan<- error, 1)
 	for i := 0; i < len(werrs); i++ {
 		ch := make(chan error)
-		rerrs[i] := ch
-		werrs[i] := ch
+		rerrs[i] = ch
+		werrs[i] = ch
 	}
 
 	errors.Close(werrs)
