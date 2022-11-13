@@ -9,6 +9,7 @@ import (
 
 	"github.com/alex-ilchukov/flow/emitters"
 	flowerrors "github.com/alex-ilchukov/flow/errors"
+	"github.com/alex-ilchukov/flow/values"
 )
 
 type p[E flowerrors.Senders] struct {
@@ -16,14 +17,13 @@ type p[E flowerrors.Senders] struct {
 	err    error
 }
 
-func (p *p[E]) Produce(ctx context.Context, out chan<- int, errs E) {
+func (p *p[E]) Produce(ctx context.Context, s values.Sender[int], errs E) {
 	for i := 0; i < p.amount; i++ {
-		out <- i
+		s.Send(i)
 	}
 
 	if p.err != nil && len(errs) > 0 {
-		ch := errs[len(errs)-1]
-		ch <- p.err
+		errs[len(errs)-1].Send(p.err)
 	}
 }
 
