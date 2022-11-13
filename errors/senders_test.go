@@ -10,23 +10,32 @@ import (
 )
 
 func TestMakeNoErrors(t *testing.T) {
-	_, rerrs := flowerrors.Make[flowerrors.No]()
-	if len(rerrs) > 0 {
+	ctx := context.Background()
+	_, rerrs, werrs := flowerrors.Make[flowerrors.No](ctx)
+	switch {
+	case len(rerrs) > 0:
 		t.Errorf("Got something in rerrs")
+
+	case len(werrs) > 0:
+		t.Errorf("Got something in werrs")
 	}
 }
 
 func TestMakeOneError(t *testing.T) {
-	werrs, rerrs := flowerrors.Make[flowerrors.One]()
-	if len(rerrs) != 1 {
+	ctx := context.Background()
+	s, rerrs, werrs := flowerrors.Make[flowerrors.One](ctx)
+	switch {
+	case len(rerrs) != 1:
 		t.Errorf("Invalid length of rerrs")
+
+	case len(rerrs) != len(werrs):
+		t.Errorf("Lengths of rerrs and werrs aren't the same")
 	}
 
-	ctx := context.Background()
 	deadline := time.Now().Add(time.Millisecond)
 	ctx, _ = context.WithDeadline(ctx, deadline)
 	err := errors.New("test")
-	go func() { werrs[0] <- err }()
+	go func() { s[0].Send(err) }()
 
 	select {
 	case e := <-rerrs[0]:
