@@ -1,4 +1,4 @@
-package values_test
+package receiver_test
 
 import (
 	"context"
@@ -6,23 +6,25 @@ import (
 	"time"
 
 	"github.com/alex-ilchukov/flow/values"
+	"github.com/alex-ilchukov/flow/values/receiver"
 )
 
 func TestReceiveWhenSuccessful(t *testing.T) {
 	ctx := context.Background()
 	ch := make(chan int)
+	r := receiver.New(ctx, ch)
 	v := 42
 
 	go func() { ch <- v }()
 
-	u, status := values.Receive(ctx, ch)
+	u, err := r.Receive()
 
 	switch {
 	case u != v:
 		t.Errorf("Invalid value %d is read (should be %d)", u, v)
 
-	case status != nil:
-		t.Errorf("Got receive error %v (should have no error)", status)
+	case err != nil:
+		t.Errorf("Got receive error %v (should have no error)", err)
 	}
 }
 
@@ -33,13 +35,14 @@ func TestReceiveWhenCanceled(t *testing.T) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	ch := make(chan int)
+	r := receiver.New(ctx, ch)
 
 	go cancel()
 
-	_, status := values.Receive(ctx, ch)
+	_, err := r.Receive()
 
-	if status != context.Canceled {
-		t.Errorf(testReceiveWhenCanceledError, status)
+	if err != context.Canceled {
+		t.Errorf(testReceiveWhenCanceledError, err)
 	}
 }
 
@@ -49,12 +52,13 @@ const testReceiveWhenClosedError = "Receive got invalid error on closed " +
 func TestReceiveWhenClosed(t *testing.T) {
 	ctx := context.Background()
 	ch := make(chan int)
+	r := receiver.New(ctx, ch)
 	close(ch)
 
-	_, status := values.Receive(ctx, ch)
+	_, err := r.Receive()
 
-	if status != values.Over {
-		t.Errorf(testReceiveWhenClosedError, status, values.Over)
+	if err != values.Over {
+		t.Errorf(testReceiveWhenClosedError, err, values.Over)
 	}
 }
 
@@ -66,9 +70,10 @@ func TestReceiveWhenDeadlineExceeded(t *testing.T) {
 	deadline := time.Now().Add(time.Microsecond)
 	ctx, _ = context.WithDeadline(ctx, deadline)
 	ch := make(chan int)
-	_, status := values.Receive(ctx, ch)
+	r := receiver.New(ctx, ch)
+	_, err := r.Receive()
 
-	if status != context.DeadlineExceeded {
-		t.Errorf(testReceiveWhenDeadlineExceededError, status)
+	if err != context.DeadlineExceeded {
+		t.Errorf(testReceiveWhenDeadlineExceededError, err)
 	}
 }

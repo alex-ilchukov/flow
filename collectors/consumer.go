@@ -4,16 +4,15 @@ import (
 	"context"
 
 	"github.com/alex-ilchukov/flow/errors"
+	"github.com/alex-ilchukov/flow/values"
 )
 
 // Consumer is type of consumers of values used by [flow.Collector] interface
 // implementations.
-type Consumer[V any, E errors.Chans] interface {
-	// Consume should read values of type V from the provided channel with
-	// respect to the provided context and consume them. Depending on
-	// provided collection of error-writing channels of type from set E, it
-	// can also support reporting on errors. It is not supposed to manage
-	// channels and is assumed to be running in non-blocking go-routine by
-	// its collecting owner.
-	Consume(context.Context, <-chan V, E)
+type Consumer[V any, E errors.Senders] interface {
+	// Consume should receive values of type V wth the provided reveiver
+	// and consume them. Depending on the provided collection of error
+	// senders of type from set E, it can also report on errrors. It can
+	// assume, that the provided instances are never nil.
+	Consume(context.Context, values.Receiver[V], E)
 }
