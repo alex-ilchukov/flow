@@ -9,14 +9,34 @@ import (
 	"github.com/alex-ilchukov/flow"
 )
 
-type impl struct {
+type noerrs struct {
+	total   int
+	written int
+}
+
+func (f *noerrs) Flow(context.Context) (<-chan int, []<-chan error) {
+	c := make(chan int)
+	go f.process(c)
+
+	return c, nil
+}
+
+func (f *noerrs) process(c chan int) {
+	defer close(c)
+
+	for ; f.written < f.total; f.written++ {
+		c <- f.written
+	}
+}
+
+type witherrs struct {
 	total    int
 	err      error
 	written  int
 	canceled bool
 }
 
-func (f *impl) Flow(ctx context.Context) (<-chan int, []<-chan error) {
+func (f *witherrs) Flow(ctx context.Context) (<-chan int, []<-chan error) {
 	c := make(chan int)
 	e := make(chan error)
 	go f.process(ctx, c, e)
@@ -24,7 +44,7 @@ func (f *impl) Flow(ctx context.Context) (<-chan int, []<-chan error) {
 	return c, []<-chan error{e}
 }
 
-func (f *impl) process(ctx context.Context, c chan int, e chan error) {
+func (f *witherrs) process(ctx context.Context, c chan int, e chan error) {
 	defer close(e)
 	defer close(c)
 
@@ -43,7 +63,7 @@ func (f *impl) process(ctx context.Context, c chan int, e chan error) {
 	}
 }
 
-func (f *impl) push(ctx context.Context, c chan int, v int) {
+func (f *witherrs) push(ctx context.Context, c chan int, v int) {
 	select {
 	case <-ctx.Done():
 		f.canceled = true
@@ -61,9 +81,23 @@ func TestRunWhenFlowIsNil(t *testing.T) {
 	}
 }
 
+func TestRunWhenFlowHasNoErrs(t *testing.T) {
+	ctx := context.Background()
+	f := noerrs{total: 5}
+	err := flow.Run[int](ctx, &f)
+
+	switch {
+	case err != nil:
+		t.Errorf("got error: %v", err)
+
+	case f.written != 5:
+		t.Errorf("invalid write tries amount: %d", f.written)
+	}
+}
+
 func TestRunWhenFlowIsErrorless(t *testing.T) {
 	ctx := context.Background()
-	f := impl{total: 5}
+	f := witherrs{total: 5}
 	err := flow.Run[int](ctx, &f)
 
 	switch {
@@ -78,7 +112,7 @@ func TestRunWhenFlowIsErrorless(t *testing.T) {
 func TestRunWhenFlowIsErrorful(t *testing.T) {
 	ctx := context.Background()
 	flowerr := errors.New("serious problem")
-	f := impl{total: 5, err: flowerr}
+	f := witherrs{total: 5, err: flowerr}
 	err := flow.Run[int](ctx, &f)
 
 	switch {
@@ -98,7 +132,7 @@ func TestRunWhenFlowIsCanceled(t *testing.T) {
 	ctx, cancel := context.WithCancel(ctx)
 	go cancel()
 
-	f := impl{total: -1}
+	f := witherrs{total: -1}
 	err := flow.Run[int](ctx, &f)
 
 	switch {
@@ -112,11 +146,11 @@ func TestRunWhenFlowIsCanceled(t *testing.T) {
 
 func TestRunWhenFlowHasReachedDeadline(t *testing.T) {
 	ctx := context.Background()
-	deadline := time.Now().Add(1 * time.Millisecond)
+	deadline := time.Now().Add(1 * time.Microsecond)
 	ctx, cancel := context.WithDeadline(ctx, deadline)
 	go cancel()
 
-	f := impl{total: -1}
+	f := witherrs{total: -1}
 	err := flow.Run[int](ctx, &f)
 
 	switch {
