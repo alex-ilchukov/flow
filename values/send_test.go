@@ -60,3 +60,13 @@ func TestSendWhenDeadlineExceeded(t *testing.T) {
 		t.Errorf(testSendWhenDeadlineExceededError, status)
 	}
 }
+
+func TestSendWhenChannelIsNil(t *testing.T) {
+	ctx := context.Background()
+	v := 42
+	err := values.Send(ctx, nil, v)
+
+	if err != nil {
+		t.Errorf("got error: %v", err)
+	}
+}
