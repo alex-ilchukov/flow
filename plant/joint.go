@@ -1,9 +1,10 @@
-package pit
+package plant
 
 import (
 	"context"
 
 	"github.com/alex-ilchukov/flow/errors"
+	"github.com/alex-ilchukov/flow/values"
 )
 
 // Joint is abstract type of logistics system, which allows to formers to
@@ -21,16 +22,46 @@ type Joint[V, W any, E errors.Senders] interface {
 	// should return the corresponding errors from [context] package in
 	// case of interruption of the transportation process or [values.Over]
 	// error if receiving ability gets closed.
-	Get() (v V, error)
+	Get() (V, error)
 
 	// Put should try to send the provided value within the [Ctx] context.
 	// It should return the corresponding errors from [context] package in
 	// case of interruption of the transportation process. It should return
 	// nil if the transportation has been successful.
-	Put(w W) error
+	Put(W) error
 
 	// Errs should return collection of error-senders. The error-senders,
 	// if there are any in the collection, should operate within the same
 	// [Ctx] context.
 	Errs() E
 }
+
+type joint[V, W any, E errors.Senders] struct {
+	ctx   context.Context
+	vals  <-chan V
+	wals  chan W
+	errs  E
+	rerrs []<-chan error
+	werrs []chan<- error
+}
+
+func (j *joint[_, _, _]) Ctx() context.Context {
+	return j.ctx
+}
+
+func (j *joint[V, _, _]) Get() (V, error) {
+	return values.Receive(j.ctx, j.vals)
+}
+
+func (j *joint[_, W, _]) Put(w W) error {
+	return values.Send(j.ctx, j.wals, w)
+}
+
+func (j *joint[_, _, E]) Errs() E {
+	return j.errs
+}
+
+var (
+	_ Joint[int, int, errors.No]  = (*joint[int, int, errors.No])(nil)
+	_ Joint[int, int, errors.One] = (*joint[int, int, errors.One])(nil)
+)
