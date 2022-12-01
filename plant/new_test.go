@@ -69,6 +69,25 @@ loop:
 	}
 }
 
+type miner[E errors.Senders] struct {
+	total int
+	last  int
+	err   error
+}
+
+func (m *miner[E]) Form(j plant.Joint[int, int, E]) {
+	for ; m.last < m.total; m.last++ {
+		err := j.Put(m.last)
+		if err != nil {
+			return
+		}
+	}
+
+	if len(j.Errs()) > 0 && m.err != nil {
+		j.Errs()[len(j.Errs())-1].Send(m.err)
+	}
+}
+
 func TestResultWithNoErrors(t *testing.T) {
 	ctx := context.Background()
 	f := fimpl{total: 5}
@@ -85,7 +104,22 @@ func TestResultWithNoErrors(t *testing.T) {
 	}
 }
 
-func TestResultWithOneErrorWhenFlowIsSuccessful(t *testing.T) {
+func TestResultWithNoErrorsWhenFlowIsNil(t *testing.T) {
+	ctx := context.Background()
+	former := miner[errors.No]{total: 5}
+	newf := plant.New[int, int, errors.No](nil, &former)
+	err := flow.Run[int](ctx, newf)
+
+	switch {
+	case err != nil:
+		t.Errorf("got error: %v", err)
+
+	case former.last != 5:
+		t.Errorf("got wrong last value: %d", former.last)
+	}
+}
+
+func TestResultWithOneErrorWhenSuccessful(t *testing.T) {
 	ctx := context.Background()
 	f := fimpl{total: 5}
 	former := former[errors.One]{}
@@ -97,6 +131,21 @@ func TestResultWithOneErrorWhenFlowIsSuccessful(t *testing.T) {
 		t.Errorf("got error: %v", err)
 
 	case former.last != 16:
+		t.Errorf("got wrong last value: %d", former.last)
+	}
+}
+
+func TestResultWithOneErrorWhenSuccessfulAndFlowIsNil(t *testing.T) {
+	ctx := context.Background()
+	former := miner[errors.One]{total: 5}
+	newf := plant.New[int, int, errors.One](nil, &former)
+	err := flow.Run[int](ctx, newf)
+
+	switch {
+	case err != nil:
+		t.Errorf("got error: %v", err)
+
+	case former.last != 5:
 		t.Errorf("got wrong last value: %d", former.last)
 	}
 }
@@ -137,6 +186,25 @@ func TestResultWithOneErrorWhenFormerIsErrorful(t *testing.T) {
 		t.Errorf("got invalid error: %v", err)
 
 	case former.last != 16:
+		t.Errorf("got wrong last value: %d", former.last)
+	}
+}
+
+func TestResultWithOneErrorWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
+	ctx := context.Background()
+	err := fmt.Errorf("serious problem")
+	former := miner[errors.One]{total: 5, err: err}
+	newf := plant.New[int, int, errors.One](nil, &former)
+	err = flow.Run[int](ctx, newf)
+
+	switch {
+	case err == nil:
+		t.Error("got no error")
+
+	case err != former.err:
+		t.Errorf("got invalid error: %v", err)
+
+	case former.last != 5:
 		t.Errorf("got wrong last value: %d", former.last)
 	}
 }
