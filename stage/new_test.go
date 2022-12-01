@@ -1,4 +1,4 @@
-package plant_test
+package stage_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/alex-ilchukov/flow"
 	"github.com/alex-ilchukov/flow/errors"
-	"github.com/alex-ilchukov/flow/plant"
+	"github.com/alex-ilchukov/flow/stage"
 	"github.com/alex-ilchukov/flow/values"
 )
 
@@ -42,7 +42,7 @@ type former[E errors.Senders] struct {
 	err  error
 }
 
-func (f *former[E]) Form(j plant.Joint[int, int, E]) {
+func (f *former[E]) Form(j stage.Joint[int, int, E]) {
 
 loop:
 	for {
@@ -75,7 +75,7 @@ type miner[E errors.Senders] struct {
 	err   error
 }
 
-func (m *miner[E]) Form(j plant.Joint[int, int, E]) {
+func (m *miner[E]) Form(j stage.Joint[int, int, E]) {
 	for ; m.last < m.total; m.last++ {
 		err := j.Put(m.last)
 		if err != nil {
@@ -92,7 +92,7 @@ func TestResultWithNoErrors(t *testing.T) {
 	ctx := context.Background()
 	f := fimpl{total: 5}
 	former := former[errors.No]{}
-	newf := plant.New[int, int, errors.No](&f, &former)
+	newf := stage.New[int, int, errors.No](&f, &former)
 	err := flow.Run[int](ctx, newf)
 
 	switch {
@@ -107,7 +107,7 @@ func TestResultWithNoErrors(t *testing.T) {
 func TestResultWithNoErrorsWhenFlowIsNil(t *testing.T) {
 	ctx := context.Background()
 	former := miner[errors.No]{total: 5}
-	newf := plant.New[int, int, errors.No](nil, &former)
+	newf := stage.New[int, int, errors.No](nil, &former)
 	err := flow.Run[int](ctx, newf)
 
 	switch {
@@ -123,7 +123,7 @@ func TestResultWithOneErrorWhenSuccessful(t *testing.T) {
 	ctx := context.Background()
 	f := fimpl{total: 5}
 	former := former[errors.One]{}
-	newf := plant.New[int, int, errors.One](&f, &former)
+	newf := stage.New[int, int, errors.One](&f, &former)
 	err := flow.Run[int](ctx, newf)
 
 	switch {
@@ -138,7 +138,7 @@ func TestResultWithOneErrorWhenSuccessful(t *testing.T) {
 func TestResultWithOneErrorWhenSuccessfulAndFlowIsNil(t *testing.T) {
 	ctx := context.Background()
 	former := miner[errors.One]{total: 5}
-	newf := plant.New[int, int, errors.One](nil, &former)
+	newf := stage.New[int, int, errors.One](nil, &former)
 	err := flow.Run[int](ctx, newf)
 
 	switch {
@@ -155,7 +155,7 @@ func TestResultWithOneErrorWhenFlowIsErrorful(t *testing.T) {
 	err := fmt.Errorf("serious problem")
 	f := fimpl{total: 5, err: err}
 	former := former[errors.One]{}
-	newf := plant.New[int, int, errors.One](&f, &former)
+	newf := stage.New[int, int, errors.One](&f, &former)
 	err = flow.Run[int](ctx, newf)
 
 	switch {
@@ -175,7 +175,7 @@ func TestResultWithOneErrorWhenFormerIsErrorful(t *testing.T) {
 	f := fimpl{total: 5}
 	err := fmt.Errorf("serious problem")
 	former := former[errors.One]{err: err}
-	newf := plant.New[int, int, errors.One](&f, &former)
+	newf := stage.New[int, int, errors.One](&f, &former)
 	err = flow.Run[int](ctx, newf)
 
 	switch {
@@ -194,7 +194,7 @@ func TestResultWithOneErrorWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
 	ctx := context.Background()
 	err := fmt.Errorf("serious problem")
 	former := miner[errors.One]{total: 5, err: err}
-	newf := plant.New[int, int, errors.One](nil, &former)
+	newf := stage.New[int, int, errors.One](nil, &former)
 	err = flow.Run[int](ctx, newf)
 
 	switch {

@@ -1,4 +1,4 @@
-package plant
+package stage
 
 import "github.com/alex-ilchukov/flow/errors"
 
