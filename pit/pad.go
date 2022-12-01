@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/alex-ilchukov/flow/errors"
+	"github.com/alex-ilchukov/flow/values"
 )
 
 // Pad is abstract type of logistics system, which allows to miners to
@@ -25,4 +26,43 @@ type Pad[V any, E errors.Senders] interface {
 	// if there are any in the collection, should operate within the same
 	// [Ctx] context.
 	Errs() E
+}
+
+type pad[V any, E errors.Senders] struct {
+	ctx   context.Context
+	vals  chan V
+	errs  E
+	rerrs []<-chan error
+	werrs []chan<- error
+}
+
+func (p *pad[_, _]) Ctx() context.Context {
+	return p.ctx
+}
+
+func (p *pad[V, _]) Put(v V) error {
+	return values.Send(p.ctx, p.vals, v)
+}
+
+func (p *pad[_, E]) Errs() E {
+	return p.errs
+}
+
+var (
+	_ Pad[int, errors.No]  = (*pad[int, errors.No])(nil)
+	_ Pad[int, errors.One] = (*pad[int, errors.One])(nil)
+)
+
+func paddify[V any, E errors.Senders](ctx context.Context) *pad[V, E] {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	p := &pad[V, E]{
+		ctx:  ctx,
+		vals: make(chan V),
+	}
+	p.errs, p.rerrs, p.werrs = errors.Make[E](ctx)
+
+	return p
 }
