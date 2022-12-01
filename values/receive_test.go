@@ -72,3 +72,16 @@ func TestReceiveWhenDeadlineExceeded(t *testing.T) {
 		t.Errorf(testReceiveWhenDeadlineExceededError, status)
 	}
 }
+
+func TestReceiveWhenChannelIsNil(t *testing.T) {
+	ctx := context.Background()
+	_, status := values.Receive[int](ctx, nil)
+
+	switch {
+	case status == nil:
+		t.Error("got invalid nil status")
+
+	case status != values.Over:
+		t.Errorf("got invalid status: %v", status)
+	}
+}
