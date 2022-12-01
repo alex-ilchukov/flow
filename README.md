@@ -85,15 +85,6 @@ So the project is about to implement algorithm of running a pipeline in generic
 way with proper error handling and use of the context. The following choices 
 have been made for the implementation details.
 
-#### Used terminology
-
-The project uses "emitters", "collectors", and "transformers" to name entities
-which describe stages. Other implementations use other words like "sources",
-"drains", "sinks", and so on. The terminology is important, as it allows to
-name interfaces and their methods in consistent way. An emitter obviously 
-emits, a collector collects, a transformer transforms, but what a sink does? 
-A drain?
-
 #### Interfaces over functions and closures
 
 The original article linked above is all about functions and closures, as the
@@ -111,6 +102,20 @@ pipeline in terms of emitter and collector only, which greatly simplifies
 things and enables late introduction to transformers. (Technically, there could
 be another way to introduce them via collectors, but that would mean backward
 pipeline construction.)
+
+#### Squashing of collecting stage
+
+A collector is an emitter, which emits _nothing_, as the collecting routine is
+hidden from the pipeline anyway. That allows to describe the pipeline in terms
+of emitters only, which simplifies things even more. Indeed, running a pipeline
+is now just running an emitter, which contains all the transformed stages (so
+it's more like a Russian doll, than a sequence of stages) and discarding its
+values (and it would emit nothing anyway).
+
+#### Used terminology
+
+TODO: fill the section.
+
 
 ## Installation
 
