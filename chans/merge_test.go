@@ -19,6 +19,8 @@ func push(ch chan<- int, vals ...int) {
 }
 
 func TestMerge(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 
 	e1 := make(chan int)
@@ -40,6 +42,8 @@ func TestMerge(t *testing.T) {
 }
 
 func TestMergeWhenCanceled(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -64,6 +68,8 @@ func TestMergeWhenCanceled(t *testing.T) {
 }
 
 func TestMergeWhenDeadlineExceeded(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	deadline := time.Now().Add(time.Microsecond)
 	ctx, _ = context.WithDeadline(ctx, deadline)

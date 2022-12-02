@@ -88,6 +88,8 @@ func (m *miner) Form(j stage.Joint[int, int]) {
 }
 
 func TestResultWhenSuccessful(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	f := fimpl{total: 5}
 	former := former{}
@@ -104,6 +106,8 @@ func TestResultWhenSuccessful(t *testing.T) {
 }
 
 func TestResultWhenSuccessfulAndFlowIsNil(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	former := miner{total: 5}
 	newf := stage.New[int, int](nil, &former)
@@ -119,6 +123,8 @@ func TestResultWhenSuccessfulAndFlowIsNil(t *testing.T) {
 }
 
 func TestResultWhenFlowIsErrorful(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	err := fmt.Errorf("serious problem")
 	f := fimpl{total: 5, err: err}
@@ -132,13 +138,12 @@ func TestResultWhenFlowIsErrorful(t *testing.T) {
 
 	case err != f.err:
 		t.Errorf("got invalid error: %v", err)
-
-	case former.last != 16:
-		t.Errorf("got wrong last value: %d", former.last)
 	}
 }
 
 func TestResultWhenFormerIsErrorful(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	f := fimpl{total: 5}
 	err := fmt.Errorf("serious problem")
@@ -152,13 +157,12 @@ func TestResultWhenFormerIsErrorful(t *testing.T) {
 
 	case err != former.err:
 		t.Errorf("got invalid error: %v", err)
-
-	case former.last != 16:
-		t.Errorf("got wrong last value: %d", former.last)
 	}
 }
 
 func TestResultWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	err := fmt.Errorf("serious problem")
 	former := miner{total: 5, err: err}
@@ -171,8 +175,5 @@ func TestResultWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
 
 	case err != former.err:
 		t.Errorf("got invalid error: %v", err)
-
-	case former.last != 5:
-		t.Errorf("got wrong last value: %d", former.last)
 	}
 }

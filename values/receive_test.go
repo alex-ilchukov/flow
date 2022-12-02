@@ -9,6 +9,8 @@ import (
 )
 
 func TestReceiveWhenSuccessful(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ch := make(chan int)
 	v := 42
@@ -30,6 +32,8 @@ const testReceiveWhenCanceledError = "Receive hasn't been canceled: %v " +
 	"(should have been canceled)"
 
 func TestReceiveWhenCanceled(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	ch := make(chan int)
@@ -47,6 +51,8 @@ const testReceiveWhenClosedError = "Receive got invalid error on closed " +
 	"channel: %v (should have been %v)"
 
 func TestReceiveWhenClosed(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ch := make(chan int)
 	close(ch)
@@ -62,6 +68,8 @@ const testReceiveWhenDeadlineExceededError = "Receive hasn't been exceeded " +
 	"deadline: %v (should have been exceeded)"
 
 func TestReceiveWhenDeadlineExceeded(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	deadline := time.Now().Add(time.Microsecond)
 	ctx, _ = context.WithDeadline(ctx, deadline)
@@ -74,6 +82,8 @@ func TestReceiveWhenDeadlineExceeded(t *testing.T) {
 }
 
 func TestReceiveWhenChannelIsNil(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	_, status := values.Receive[int](ctx, nil)
 
