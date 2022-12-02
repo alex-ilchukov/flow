@@ -9,6 +9,8 @@ import (
 )
 
 func TestSendWhenSuccessful(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ch := make(chan int)
 	v := 42
@@ -36,6 +38,8 @@ const testSendWhenCanceledError = "Send hasn't been canceled: %v (should " +
 	"have been canceled)"
 
 func TestSendWhenCanceled(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	ch := make(chan int)
@@ -54,6 +58,8 @@ const testSendWhenDeadlineExceededError = "Send hasn't been exceeded " +
 	"deadline: %v (should have been exceeded)"
 
 func TestSendWhenDeadlineExceeded(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	deadline := time.Now().Add(time.Microsecond)
 	ctx, _ = context.WithDeadline(ctx, deadline)
@@ -67,6 +73,8 @@ func TestSendWhenDeadlineExceeded(t *testing.T) {
 }
 
 func TestSendWhenChannelIsNil(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	v := 42
 	err := values.Send(ctx, nil, v)

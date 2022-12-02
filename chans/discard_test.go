@@ -9,6 +9,8 @@ import (
 )
 
 func TestDiscard(t *testing.T) {
+	t.Parallel()
+
 	r := make([]int, 0)
 	c := make(chan int)
 	wg := sync.WaitGroup{}

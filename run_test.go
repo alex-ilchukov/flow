@@ -74,6 +74,8 @@ func (f *witherrs) push(ctx context.Context, c chan int, v int) {
 }
 
 func TestRunWhenFlowIsNil(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	err := flow.Run[int](ctx, nil)
 	if err != nil {
@@ -82,6 +84,8 @@ func TestRunWhenFlowIsNil(t *testing.T) {
 }
 
 func TestRunWhenFlowHasNoErrs(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	f := noerrs{total: 5}
 	err := flow.Run[int](ctx, &f)
@@ -96,6 +100,8 @@ func TestRunWhenFlowHasNoErrs(t *testing.T) {
 }
 
 func TestRunWhenFlowIsErrorless(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	f := witherrs{total: 5}
 	err := flow.Run[int](ctx, &f)
@@ -110,6 +116,8 @@ func TestRunWhenFlowIsErrorless(t *testing.T) {
 }
 
 func TestRunWhenFlowIsErrorful(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	flowerr := errors.New("serious problem")
 	f := witherrs{total: 5, err: flowerr}
@@ -128,6 +136,8 @@ func TestRunWhenFlowIsErrorful(t *testing.T) {
 }
 
 func TestRunWhenFlowIsCanceled(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	go cancel()
@@ -141,6 +151,8 @@ func TestRunWhenFlowIsCanceled(t *testing.T) {
 }
 
 func TestRunWhenFlowHasReachedDeadline(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
 	deadline := time.Now().Add(1 * time.Microsecond)
 	ctx, _ = context.WithDeadline(ctx, deadline)
