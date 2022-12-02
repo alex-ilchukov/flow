@@ -13,10 +13,15 @@ func TestSendWhenSuccessful(t *testing.T) {
 	ch := make(chan int)
 	v := 42
 	vRead := 0
+	sync := make(chan struct{})
 
-	go func() { vRead = <-ch }()
+	go func() {
+		vRead = <-ch
+		close(sync)
+	}()
 
 	status := values.Send(ctx, ch, v)
+	<-sync
 
 	switch {
 	case vRead != v:
