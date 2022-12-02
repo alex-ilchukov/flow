@@ -38,5 +38,12 @@ func Run[V any](ctx context.Context, flow Flow[V]) error {
 
 	go values.Discard(out)
 
-	return errors.Any(ctx, errs)
+	errc := errors.Merge(ctx, errs)
+	for err := range errc {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
