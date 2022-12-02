@@ -3,7 +3,7 @@ package flow
 import (
 	"context"
 
-	"github.com/alex-ilchukov/flow/errors"
+	"github.com/alex-ilchukov/flow/chans"
 	"github.com/alex-ilchukov/flow/values"
 )
 
@@ -38,7 +38,7 @@ func Run[V any](ctx context.Context, flow Flow[V]) error {
 
 	go values.Discard(out)
 
-	errc := errors.Merge(ctx, errs)
+	errc := chans.Merge(ctx, errs...)
 	for err := range errc {
 		if err != nil {
 			return err
