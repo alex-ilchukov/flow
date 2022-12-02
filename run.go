@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/alex-ilchukov/flow/chans"
-	"github.com/alex-ilchukov/flow/values"
 )
 
 // Run launches the provided flow of values of type V within the provided
@@ -32,11 +31,11 @@ func Run[V any](ctx context.Context, flow Flow[V]) error {
 
 	out, errs := flow.Flow(ctx)
 	if len(errs) == 0 {
-		values.Discard(out)
+		chans.Discard(out)
 		return nil
 	}
 
-	go values.Discard(out)
+	go chans.Discard(out)
 
 	errc := chans.Merge(ctx, errs...)
 	for err := range errc {
