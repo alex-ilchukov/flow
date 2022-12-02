@@ -64,8 +64,8 @@ loop:
 		f.last = w
 	}
 
-	if len(j.Errs()) > 0 && f.err != nil {
-		j.Errs()[len(j.Errs())-1].Send(f.err)
+	if f.err != nil {
+		j.Report(f.err)
 	}
 }
 
@@ -83,8 +83,8 @@ func (m *miner[E]) Form(j stage.Joint[int, int, E]) {
 		}
 	}
 
-	if len(j.Errs()) > 0 && m.err != nil {
-		j.Errs()[len(j.Errs())-1].Send(m.err)
+	if m.err != nil {
+		j.Report(m.err)
 	}
 }
 

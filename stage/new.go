@@ -39,14 +39,14 @@ func (f *impl[V, W, E]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
 	j := &joint[V, W, E]{
 		ctx:  ctx,
 		wals: make(chan W),
+		errs: make(chan error),
 	}
-	j.errs, j.rerrs, j.werrs = errors.Make[E](ctx)
 
 	var rerrs []<-chan error
 	if f.flow != nil {
 		j.vals, rerrs = f.flow.Flow(ctx)
 	}
-	rerrs = append(rerrs, j.rerrs...)
+	rerrs = append(rerrs, j.errs)
 
 	go f.form(j)
 
@@ -55,7 +55,7 @@ func (f *impl[V, W, E]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
 
 func (f *impl[V, W, E]) form(j *joint[V, W, E]) {
 	defer close(j.wals)
-	defer errors.Close(j.werrs)
+	defer close(j.errs)
 
 	f.former.Form(j)
 }
