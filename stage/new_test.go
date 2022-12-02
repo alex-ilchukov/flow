@@ -132,9 +132,6 @@ func TestResultWhenFlowIsErrorful(t *testing.T) {
 
 	case err != f.err:
 		t.Errorf("got invalid error: %v", err)
-
-	case former.last != 16:
-		t.Errorf("got wrong last value: %d", former.last)
 	}
 }
 
@@ -152,9 +149,6 @@ func TestResultWhenFormerIsErrorful(t *testing.T) {
 
 	case err != former.err:
 		t.Errorf("got invalid error: %v", err)
-
-	case former.last != 16:
-		t.Errorf("got wrong last value: %d", former.last)
 	}
 }
 
@@ -171,8 +165,5 @@ func TestResultWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
 
 	case err != former.err:
 		t.Errorf("got invalid error: %v", err)
-
-	case former.last != 5:
-		t.Errorf("got wrong last value: %d", former.last)
 	}
 }
