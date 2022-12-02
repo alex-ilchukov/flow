@@ -1,11 +1,11 @@
-package values_test
+package chans_test
 
 import (
 	"reflect"
 	"sync"
 	"testing"
 
-	"github.com/alex-ilchukov/flow/values"
+	"github.com/alex-ilchukov/flow/chans"
 )
 
 func TestDiscard(t *testing.T) {
@@ -24,7 +24,7 @@ func TestDiscard(t *testing.T) {
 	}()
 
 	go func() {
-		values.Discard(c)
+		chans.Discard(c)
 		r = append(r, 2)
 		wg.Done()
 	}()

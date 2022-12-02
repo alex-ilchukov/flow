@@ -3,8 +3,7 @@ package flow
 import (
 	"context"
 
-	"github.com/alex-ilchukov/flow/errors"
-	"github.com/alex-ilchukov/flow/values"
+	"github.com/alex-ilchukov/flow/chans"
 )
 
 // Run launches the provided flow of values of type V within the provided
@@ -32,11 +31,18 @@ func Run[V any](ctx context.Context, flow Flow[V]) error {
 
 	out, errs := flow.Flow(ctx)
 	if len(errs) == 0 {
-		values.Discard(out)
+		chans.Discard(out)
 		return nil
 	}
 
-	go values.Discard(out)
+	go chans.Discard(out)
 
-	return errors.Any(ctx, errs)
+	errc := chans.Merge(ctx, errs...)
+	for err := range errc {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
