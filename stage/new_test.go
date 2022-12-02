@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/alex-ilchukov/flow"
-	"github.com/alex-ilchukov/flow/errors"
 	"github.com/alex-ilchukov/flow/stage"
 	"github.com/alex-ilchukov/flow/values"
 )
@@ -37,12 +36,12 @@ func (f *fimpl) process(ctx context.Context, c chan int, e chan error) {
 	}
 }
 
-type former[E errors.Senders] struct {
+type former struct {
 	last int
 	err  error
 }
 
-func (f *former[E]) Form(j stage.Joint[int, int, E]) {
+func (f *former) Form(j stage.Joint[int, int]) {
 
 loop:
 	for {
@@ -69,13 +68,13 @@ loop:
 	}
 }
 
-type miner[E errors.Senders] struct {
+type miner struct {
 	total int
 	last  int
 	err   error
 }
 
-func (m *miner[E]) Form(j stage.Joint[int, int, E]) {
+func (m *miner) Form(j stage.Joint[int, int]) {
 	for ; m.last < m.total; m.last++ {
 		err := j.Put(m.last)
 		if err != nil {
@@ -88,11 +87,11 @@ func (m *miner[E]) Form(j stage.Joint[int, int, E]) {
 	}
 }
 
-func TestResultWithNoErrors(t *testing.T) {
+func TestResultWhenSuccessful(t *testing.T) {
 	ctx := context.Background()
 	f := fimpl{total: 5}
-	former := former[errors.No]{}
-	newf := stage.New[int, int, errors.No](&f, &former)
+	former := former{}
+	newf := stage.New[int, int](&f, &former)
 	err := flow.Run[int](ctx, newf)
 
 	switch {
@@ -104,10 +103,10 @@ func TestResultWithNoErrors(t *testing.T) {
 	}
 }
 
-func TestResultWithNoErrorsWhenFlowIsNil(t *testing.T) {
+func TestResultWhenSuccessfulAndFlowIsNil(t *testing.T) {
 	ctx := context.Background()
-	former := miner[errors.No]{total: 5}
-	newf := stage.New[int, int, errors.No](nil, &former)
+	former := miner{total: 5}
+	newf := stage.New[int, int](nil, &former)
 	err := flow.Run[int](ctx, newf)
 
 	switch {
@@ -119,43 +118,12 @@ func TestResultWithNoErrorsWhenFlowIsNil(t *testing.T) {
 	}
 }
 
-func TestResultWithOneErrorWhenSuccessful(t *testing.T) {
-	ctx := context.Background()
-	f := fimpl{total: 5}
-	former := former[errors.One]{}
-	newf := stage.New[int, int, errors.One](&f, &former)
-	err := flow.Run[int](ctx, newf)
-
-	switch {
-	case err != nil:
-		t.Errorf("got error: %v", err)
-
-	case former.last != 16:
-		t.Errorf("got wrong last value: %d", former.last)
-	}
-}
-
-func TestResultWithOneErrorWhenSuccessfulAndFlowIsNil(t *testing.T) {
-	ctx := context.Background()
-	former := miner[errors.One]{total: 5}
-	newf := stage.New[int, int, errors.One](nil, &former)
-	err := flow.Run[int](ctx, newf)
-
-	switch {
-	case err != nil:
-		t.Errorf("got error: %v", err)
-
-	case former.last != 5:
-		t.Errorf("got wrong last value: %d", former.last)
-	}
-}
-
-func TestResultWithOneErrorWhenFlowIsErrorful(t *testing.T) {
+func TestResultWhenFlowIsErrorful(t *testing.T) {
 	ctx := context.Background()
 	err := fmt.Errorf("serious problem")
 	f := fimpl{total: 5, err: err}
-	former := former[errors.One]{}
-	newf := stage.New[int, int, errors.One](&f, &former)
+	former := former{}
+	newf := stage.New[int, int](&f, &former)
 	err = flow.Run[int](ctx, newf)
 
 	switch {
@@ -170,12 +138,12 @@ func TestResultWithOneErrorWhenFlowIsErrorful(t *testing.T) {
 	}
 }
 
-func TestResultWithOneErrorWhenFormerIsErrorful(t *testing.T) {
+func TestResultWhenFormerIsErrorful(t *testing.T) {
 	ctx := context.Background()
 	f := fimpl{total: 5}
 	err := fmt.Errorf("serious problem")
-	former := former[errors.One]{err: err}
-	newf := stage.New[int, int, errors.One](&f, &former)
+	former := former{err: err}
+	newf := stage.New[int, int](&f, &former)
 	err = flow.Run[int](ctx, newf)
 
 	switch {
@@ -190,11 +158,11 @@ func TestResultWithOneErrorWhenFormerIsErrorful(t *testing.T) {
 	}
 }
 
-func TestResultWithOneErrorWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
+func TestResultWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
 	ctx := context.Background()
 	err := fmt.Errorf("serious problem")
-	former := miner[errors.One]{total: 5, err: err}
-	newf := stage.New[int, int, errors.One](nil, &former)
+	former := miner{total: 5, err: err}
+	newf := stage.New[int, int](nil, &former)
 	err = flow.Run[int](ctx, newf)
 
 	switch {

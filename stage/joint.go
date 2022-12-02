@@ -3,15 +3,12 @@ package stage
 import (
 	"context"
 
-	"github.com/alex-ilchukov/flow/errors"
 	"github.com/alex-ilchukov/flow/values"
 )
 
 // Joint is abstract type of logistics system, which allows to formers to
 // transport their input values of type V and their output values of type W.
-// Depending on the type E, the system can also allow to report on errors in
-// the forming process.
-type Joint[V, W any, E errors.Senders] interface {
+type Joint[V, W any] interface {
 	// Ctx should return the whole context, which the system uses to
 	// operate within. It should never return nil. The context can be used
 	// to propagate cancellation or deadline events.
@@ -37,30 +34,30 @@ type Joint[V, W any, E errors.Senders] interface {
 	Report(error) error
 }
 
-type joint[V, W any, E errors.Senders] struct {
+type joint[V, W any] struct {
 	ctx  context.Context
 	vals <-chan V
 	wals chan W
 	errs chan error
 }
 
-func (j *joint[_, _, _]) Ctx() context.Context {
+func (j *joint[_, _]) Ctx() context.Context {
 	return j.ctx
 }
 
-func (j *joint[V, _, _]) Get() (V, error) {
+func (j *joint[V, _]) Get() (V, error) {
 	return values.Receive(j.ctx, j.vals)
 }
 
-func (j *joint[_, W, _]) Put(w W) error {
+func (j *joint[_, W]) Put(w W) error {
 	return values.Send(j.ctx, j.wals, w)
 }
 
-func (j *joint[_, _, _]) Report(e error) error {
+func (j *joint[_, _]) Report(e error) error {
 	return values.Send(j.ctx, j.errs, e)
 }
 
 var (
-	_ Joint[int, int, errors.No]  = (*joint[int, int, errors.No])(nil)
-	_ Joint[int, int, errors.One] = (*joint[int, int, errors.One])(nil)
+	_ Joint[int, int] = (*joint[int, int])(nil)
+	_ Joint[int, int] = (*joint[int, int])(nil)
 )
