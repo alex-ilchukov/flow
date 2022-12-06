@@ -6,13 +6,6 @@ import (
 	"github.com/alex-ilchukov/flow"
 )
 
-// New takes a flow of values of type V with a former of the values to new
-// values of type W, creates new flow with the former in its core, and returns
-// the flow.
-func New[V, W any](flow flow.Flow[V], former Former[V, W]) *Flow[V, W] {
-	return &Flow[V, W]{Origin: flow, Former: former}
-}
-
 // Flow is implementation of [flow.Flow], which can represent emitting stage
 // or transforming stage, depending on its fields.
 type Flow[V, W any] struct {

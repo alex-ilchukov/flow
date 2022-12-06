@@ -93,8 +93,8 @@ func TestResultWhenSuccessful(t *testing.T) {
 	ctx := context.Background()
 	f := fimpl{total: 5}
 	former := former{}
-	newf := stage.New[int, int](&f, &former)
-	err := flow.Run[int](ctx, newf)
+	newf := stage.Flow[int, int]{Origin: &f, Former: &former}
+	err := flow.Run[int](ctx, &newf)
 
 	switch {
 	case err != nil:
@@ -110,8 +110,8 @@ func TestResultWhenSuccessfulAndFlowIsNil(t *testing.T) {
 
 	ctx := context.Background()
 	former := miner{total: 5}
-	newf := stage.New[int, int](nil, &former)
-	err := flow.Run[int](ctx, newf)
+	newf := stage.Flow[int, int]{Former: &former}
+	err := flow.Run[int](ctx, &newf)
 
 	switch {
 	case err != nil:
@@ -129,8 +129,8 @@ func TestResultWhenFlowIsErrorful(t *testing.T) {
 	err := fmt.Errorf("serious problem")
 	f := fimpl{total: 5, err: err}
 	former := former{}
-	newf := stage.New[int, int](&f, &former)
-	err = flow.Run[int](ctx, newf)
+	newf := stage.Flow[int, int]{Origin: &f, Former: &former}
+	err = flow.Run[int](ctx, &newf)
 
 	switch {
 	case err == nil:
@@ -148,8 +148,8 @@ func TestResultWhenFormerIsErrorful(t *testing.T) {
 	f := fimpl{total: 5}
 	err := fmt.Errorf("serious problem")
 	former := former{err: err}
-	newf := stage.New[int, int](&f, &former)
-	err = flow.Run[int](ctx, newf)
+	newf := stage.Flow[int, int]{Origin: &f, Former: &former}
+	err = flow.Run[int](ctx, &newf)
 
 	switch {
 	case err == nil:
@@ -166,8 +166,8 @@ func TestResultWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
 	ctx := context.Background()
 	err := fmt.Errorf("serious problem")
 	former := miner{total: 5, err: err}
-	newf := stage.New[int, int](nil, &former)
-	err = flow.Run[int](ctx, newf)
+	newf := stage.Flow[int, int]{Former: &former}
+	err = flow.Run[int](ctx, &newf)
 
 	switch {
 	case err == nil:
