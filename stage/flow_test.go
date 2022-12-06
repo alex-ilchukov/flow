@@ -87,7 +87,7 @@ func (m *miner) Form(j stage.Joint[int, int]) {
 	}
 }
 
-func TestResultWhenSuccessful(t *testing.T) {
+func TestFlowWhenSuccessful(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -105,7 +105,7 @@ func TestResultWhenSuccessful(t *testing.T) {
 	}
 }
 
-func TestResultWhenSuccessfulAndFlowIsNil(t *testing.T) {
+func TestFlowWhenSuccessfulAndOriginIsNil(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -122,7 +122,7 @@ func TestResultWhenSuccessfulAndFlowIsNil(t *testing.T) {
 	}
 }
 
-func TestResultWhenFlowIsErrorful(t *testing.T) {
+func TestFlowWhenOriginIsErrorful(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -141,7 +141,7 @@ func TestResultWhenFlowIsErrorful(t *testing.T) {
 	}
 }
 
-func TestResultWhenFormerIsErrorful(t *testing.T) {
+func TestFlowWhenFormerIsErrorful(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -160,7 +160,7 @@ func TestResultWhenFormerIsErrorful(t *testing.T) {
 	}
 }
 
-func TestResultWhenFormerIsErrorfulAndFlowIsNil(t *testing.T) {
+func TestFlowWhenFormerIsErrorfulAndOriginIsNil(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
