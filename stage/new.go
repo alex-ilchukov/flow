@@ -9,13 +9,23 @@ import (
 // New takes a flow of values of type V with a former of the values to new
 // values of type W, creates new flow with the former in its core, and returns
 // the flow.
-func New[V, W any](flow flow.Flow[V], former Former[V, W]) *impl[V, W] {
-	return &impl[V, W]{flow: flow, former: former}
+func New[V, W any](flow flow.Flow[V], former Former[V, W]) *Flow[V, W] {
+	return &Flow[V, W]{Origin: flow, Former: former}
 }
 
-type impl[V, W any] struct {
-	flow   flow.Flow[V]
-	former Former[V, W]
+// Flow is implementation of [flow.Flow], which can represent emitting stage
+// or transforming stage, depending on its fields.
+type Flow[V, W any] struct {
+	// Origin is flow of original values. It is allowed to be nil, and nil
+	// origin means, that the implementation is an emitting stage. If the
+	// origin is not nil, the implementation is transforming stage, which
+	// makes new values from original values of type V.
+	Origin flow.Flow[V]
+
+	// Former is either producer of values of type W, if [Origin] is nil,
+	// or transformer of values of type V to new values of type W in other
+	// case. It must not be nil.
+	Former Former[V, W]
 }
 
 // Flow takes a context, launches the flow of values of type V, creates
@@ -25,7 +35,7 @@ type impl[V, W any] struct {
 // for reporting on possible forming errors. The function takes care of closing
 // of all the channels returned and handles gracefully cancellation of data
 // transportation via the provided context.
-func (f *impl[V, W]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
+func (f *Flow[V, W]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -37,8 +47,8 @@ func (f *impl[V, W]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
 	}
 
 	var rerrs []<-chan error
-	if f.flow != nil {
-		j.vals, rerrs = f.flow.Flow(ctx)
+	if f.Origin != nil {
+		j.vals, rerrs = f.Origin.Flow(ctx)
 	}
 	rerrs = append(rerrs, j.errs)
 
@@ -47,14 +57,14 @@ func (f *impl[V, W]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
 	return j.wals, rerrs
 }
 
-func (f *impl[V, W]) form(j *joint[V, W]) {
+func (f *Flow[V, W]) form(j *joint[V, W]) {
 	defer close(j.wals)
 	defer close(j.errs)
 
-	f.former.Form(j)
+	f.Former.Form(j)
 }
 
 var (
-	_ flow.Flow[int] = (*impl[int, int])(nil)
-	_ flow.Flow[int] = (*impl[int, int])(nil)
+	_ flow.Flow[int] = (*Flow[int, int])(nil)
+	_ flow.Flow[int] = (*Flow[int, int])(nil)
 )
