@@ -28,13 +28,19 @@ type Flow[V, W any] struct {
 	Former Former[V, W]
 }
 
-// Flow takes a context, launches the flow of values of type V, creates
-// logistics system of [Joint] abstract type, and starts transforming of the
-// values to new values of type W in non-blocking way. It returns a read-only
-// channel of the transformed values with a slice of channels of error values
-// for reporting on possible forming errors. The function takes care of closing
-// of all the channels returned and handles gracefully cancellation of data
-// transportation via the provided context.
+// Flow takes a context and, depending on origin in the flow, does the
+// following. If origin is nil, it launches emitting stage: creates logistics
+// system of [Joint] abstract type and starts forming new values of type W in
+// non-blocking way. If origin is not nil, it launches transforming stage:
+// starts its flow of values of type V, creates logistics system of [Joint]
+// abstract type, and performs transforming of the values to new values of
+// type W in non-blocking way.
+//
+// In either case, it returns a read-only channel of the new values with
+// a slice of channels of error values for reporting on possible forming
+// errors. The function takes care of closing of all the channels returned and
+// handles gracefully cancellation of data transportation via the provided
+// context.
 func (f *Flow[V, W]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
 	if ctx == nil {
 		ctx = context.Background()
