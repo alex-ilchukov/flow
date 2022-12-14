@@ -3,6 +3,7 @@ package stage_test
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/alex-ilchukov/flow"
@@ -175,5 +176,124 @@ func TestFlowWhenFormerIsErrorfulAndOriginIsNil(t *testing.T) {
 
 	case err != former.err:
 		t.Errorf("got invalid error: %v", err)
+	}
+}
+
+type spreadfactory struct {
+	mu    sync.Mutex
+	forms int
+}
+
+func (s *spreadfactory) inc() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.forms++
+}
+
+func (s *spreadfactory) produce() *spreadformer {
+	return &spreadformer{factory: s}
+}
+
+type spreadformer struct {
+	factory *spreadfactory
+}
+
+func (f *spreadformer) Form(j stage.Joint[int, int]) {
+
+	f.factory.inc()
+
+loop:
+	for {
+		v, err := j.Get()
+		switch {
+		case err == values.Over:
+			break loop
+
+		case err != nil:
+			return
+		}
+
+		w := v * v
+		err = j.Put(w)
+		if err != nil {
+			return
+		}
+	}
+}
+
+func TestFlowWhenSpreadIsDefault(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	f := fimpl{total: 5}
+	factory := spreadfactory{}
+	former := factory.produce()
+	newf := stage.Flow[int, int]{Origin: &f, Former: former}
+	err := flow.Run[int](ctx, &newf)
+
+	switch {
+	case err != nil:
+		t.Errorf("got error: %v", err)
+
+	case factory.forms != 1:
+		t.Errorf("got invalid amount of form calls: %d", factory.forms)
+	}
+}
+
+func TestFlowWhenSpreadIsNegative(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	f := fimpl{total: 5}
+	factory := spreadfactory{}
+	former := factory.produce()
+	newf := stage.Flow[int, int]{Origin: &f, Former: former, Spread: -5}
+	err := flow.Run[int](ctx, &newf)
+
+	switch {
+	case err != nil:
+		t.Errorf("got error: %v", err)
+
+	case factory.forms != 1:
+		t.Errorf("got invalid amount of form calls: %d", factory.forms)
+	}
+}
+
+func TestFlowWhenSpreadIsOne(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	f := fimpl{total: 5}
+	factory := spreadfactory{}
+	former := factory.produce()
+	newf := stage.Flow[int, int]{Origin: &f, Former: former, Spread: 1}
+	err := flow.Run[int](ctx, &newf)
+
+	switch {
+	case err != nil:
+		t.Errorf("got error: %v", err)
+
+	case factory.forms != 1:
+		t.Errorf("got invalid amount of form calls: %d", factory.forms)
+	}
+}
+
+func TestFlowWhenSpreadIsMoreThanOne(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	f := fimpl{total: 5}
+	factory := spreadfactory{}
+	former := factory.produce()
+	newf := stage.Flow[int, int]{Origin: &f, Former: former, Spread: 4}
+	err := flow.Run[int](ctx, &newf)
+
+	switch {
+	case err != nil:
+		t.Errorf("got error: %v", err)
+
+	case factory.forms != 4:
+		t.Errorf("got invalid amount of form calls: %d", factory.forms)
 	}
 }

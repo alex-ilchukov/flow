@@ -2,6 +2,7 @@ package stage
 
 import (
 	"context"
+	"sync"
 
 	"github.com/alex-ilchukov/flow"
 )
@@ -39,6 +40,11 @@ type Flow[V, W any] struct {
 // errors. The function takes care of closing of all the channels returned and
 // handles gracefully cancellation of data transportation via the provided
 // context.
+//
+// The function supports launching of multiple go-routines for forming of
+// values. The amount can be specified via [Flow.Spread] field. If the amount
+// is more than one, every go-routine would have its own call to [Former.Form]
+// method with the same common instance of [Joint].
 func (f *Flow[V, W]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -56,7 +62,11 @@ func (f *Flow[V, W]) Flow(ctx context.Context) (<-chan W, []<-chan error) {
 	}
 	rerrs = append(rerrs, j.errs)
 
-	go f.form(j)
+	if f.Spread <= 1 {
+		go f.form(j)
+	} else {
+		f.spreadForm(j)
+	}
 
 	return j.wals, rerrs
 }
@@ -66,6 +76,33 @@ func (f *Flow[V, W]) form(j *joint[V, W]) {
 	defer close(j.errs)
 
 	f.Former.Form(j)
+}
+
+func (f *Flow[V, W]) spreadForm(j *joint[V, W]) {
+	s := spreader[V, W]{former: f.Former, joint: j}
+	s.wg.Add(f.Spread)
+	for i := 0; i < f.Spread; i++ {
+		go s.form()
+	}
+
+	go s.wait()
+}
+
+type spreader[V, W any] struct {
+	wg     sync.WaitGroup
+	former Former[V, W]
+	joint  *joint[V, W]
+}
+
+func (s *spreader[_, _]) form() {
+	defer s.wg.Done()
+	s.former.Form(s.joint)
+}
+
+func (s *spreader[_, _]) wait() {
+	s.wg.Wait()
+	close(s.joint.wals)
+	close(s.joint.errs)
 }
 
 var (
