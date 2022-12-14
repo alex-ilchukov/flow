@@ -19,6 +19,11 @@ type Flow[V, W any] struct {
 	// or transformer of values of type V to new values of type W in other
 	// case. It must not be nil.
 	Former Former[V, W]
+
+	// Spread is amount of forming go-routines, which produce or transform
+	// values in concurrent way within the same [Joint] (see [Flow.Flow]
+	// method). Any value less than one is interpretted as one.
+	Spread int
 }
 
 // Flow takes a context and, depending on origin in the flow, does the
